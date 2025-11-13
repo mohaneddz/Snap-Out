@@ -17,24 +17,39 @@ function loadSites() {
 // Render sites list
 function renderSites() {
   sitesCount.textContent = blockedSites.length;
-  sitesList.innerHTML = '';
+  sitesList.textContent = '';
   
   if (blockedSites.length === 0) {
-    sitesList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">🌐</div>
-        <div class="empty-state-text">No blocked websites yet. Add one above to get started!</div>
-      </div>
-    `;
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    
+    const icon = document.createElement('div');
+    icon.className = 'empty-state-icon';
+    icon.textContent = '🌐';
+    emptyDiv.appendChild(icon);
+    
+    const text = document.createElement('div');
+    text.className = 'empty-state-text';
+    text.textContent = 'No blocked websites yet. Add one above to get started!';
+    emptyDiv.appendChild(text);
+    
+    sitesList.appendChild(emptyDiv);
     return;
   }
   
   blockedSites.forEach((site, index) => {
     const li = document.createElement('li');
-    li.innerHTML = `
-      <span>🔒 ${site}</span>
-      <button class="delete-btn" data-index="${index}">Remove</button>
-    `;
+    
+    const span = document.createElement('span');
+    span.textContent = `🔒 ${site}`;
+    li.appendChild(span);
+    
+    const btn = document.createElement('button');
+    btn.className = 'delete-btn';
+    btn.setAttribute('data-index', index);
+    btn.textContent = 'Remove';
+    li.appendChild(btn);
+    
     sitesList.appendChild(li);
   });
 }

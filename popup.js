@@ -46,25 +46,43 @@ function formatTime(timestamp) {
 
 function renderHistory(history) {
   if (history.length === 0) {
-    historyList.innerHTML = '<div class="no-history">No visits recorded yet</div>';
+    const noHistory = document.createElement('div');
+    noHistory.className = 'no-history';
+    noHistory.textContent = 'No visits recorded yet';
+    historyList.textContent = '';
+    historyList.appendChild(noHistory);
     return;
   }
   
   // Show only last 3 entries
   const recentHistory = history.slice(0, 3);
   
-  historyList.innerHTML = recentHistory.map(item => {
+  historyList.textContent = '';
+  
+  recentHistory.forEach(item => {
     const domainName = extractDomainName(item.url);
     const timeAgo = formatTime(item.timestamp);
     
-    return `
-      <div class="history-item">
-        <div class="history-url">${domainName}</div>
-        <div class="history-reason">"${item.reason}"</div>
-        <div class="history-time">${timeAgo}</div>
-      </div>
-    `;
-  }).join('');
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'history-item';
+    
+    const urlDiv = document.createElement('div');
+    urlDiv.className = 'history-url';
+    urlDiv.textContent = domainName;
+    itemDiv.appendChild(urlDiv);
+    
+    const reasonDiv = document.createElement('div');
+    reasonDiv.className = 'history-reason';
+    reasonDiv.textContent = `"${item.reason}"`;
+    itemDiv.appendChild(reasonDiv);
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'history-time';
+    timeDiv.textContent = timeAgo;
+    itemDiv.appendChild(timeDiv);
+    
+    historyList.appendChild(itemDiv);
+  });
 }
 
 viewAllBtn.addEventListener('click', () => {
