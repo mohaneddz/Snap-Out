@@ -1,33 +1,37 @@
 {
-  "manifest_version": 3,
-  "name": "Snap Out",
-  "version": "1.0.0",
-  "description": "Block distracting websites until you state your reason for visiting",
-  "permissions": [
-    "storage",
-    "tabs",
-    "webNavigation"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "128": "icons/icon128.png"
-    }
-  },
-  "options_page": "options.html",
-  "web_accessible_resources": [
-    {
-      "resources": ["history.html"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "icons": {
-    "128": "icons/icon128.png"
-  }
+	"manifest_version": 3,
+	"name": "Snap Out",
+	"version": "1.0",
+	"description": "Block distracting websites until you state your reason for visiting",
+	"permissions": ["storage", "tabs", "webNavigation"],
+	"host_permissions": ["<all_urls>"],
+	"background": {
+		"scripts": ["background.js"]
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"128": "icons/icon128.png"
+		}
+	},
+	"options_page": "options.html",
+	"web_accessible_resources": [
+		{
+			"resources": ["history.html"],
+			"matches": ["<all_urls>"]
+		}
+	],
+	"icons": {
+		"128": "icons/icon128.png"
+	},
+	"data_collection_permissions": [],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "snapout@example.com",
+			"data_collection_permissions": {
+				"required": ["none"],
+				"optional": []
+			}
+		}
+	}
 }
