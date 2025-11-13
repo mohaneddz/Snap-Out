@@ -48,19 +48,38 @@ function renderHistory(history) {
     return;
   }
   
-  historyList.innerHTML = history.map(item => {
+  historyList.innerHTML = '';
+  
+  history.forEach(item => {
     const domainName = extractDomainName(item.url);
     const formattedTime = formatTime(item.timestamp);
     
-    return `
-      <div class="history-item">
-        <div class="history-url">${domainName}</div>
-        <div class="history-full-url">${item.url}</div>
-        <div class="history-reason">"${item.reason}"</div>
-        <div class="history-time">${formattedTime}</div>
-      </div>
-    `;
-  }).join('');
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    
+    const urlDiv = document.createElement('div');
+    urlDiv.className = 'history-url';
+    urlDiv.textContent = domainName;
+    
+    const fullUrlDiv = document.createElement('div');
+    fullUrlDiv.className = 'history-full-url';
+    fullUrlDiv.textContent = item.url;
+    
+    const reasonDiv = document.createElement('div');
+    reasonDiv.className = 'history-reason';
+    reasonDiv.textContent = `"${item.reason}"`;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'history-time';
+    timeDiv.textContent = formattedTime;
+    
+    historyItem.appendChild(urlDiv);
+    historyItem.appendChild(fullUrlDiv);
+    historyItem.appendChild(reasonDiv);
+    historyItem.appendChild(timeDiv);
+    
+    historyList.appendChild(historyItem);
+  });
 }
 
 clearBtn.addEventListener('click', () => {
