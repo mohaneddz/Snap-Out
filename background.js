@@ -1,14 +1,18 @@
+// Use browser API if available (Firefox), fallback to chrome (Chrome)
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 let blockedSites = [];
 let pendingNavigations = new Map();
 let grantedTabs = new Set(); // Track tabs with granted access
 
-// Load blocked sites from storage
-chrome.storage.sync.get(['blockedSites'], (result) => {
+// Load blocked sites from storage (use sync if available, fallback to local)
+const storageArea = browserAPI.storage.sync || browserAPI.storage.local;
+storageArea.get(['blockedSites'], (result) => {
   blockedSites = result.blockedSites || [];
 });
 
 // Listen for storage changes
-chrome.storage.onChanged.addListener((changes) => {
+browserAPI.storage.onChanged.addListener((changes, areaName) => {
   if (changes.blockedSites) {
     blockedSites = changes.blockedSites.newValue || [];
   }
@@ -29,7 +33,7 @@ function isBlocked(url) {
 }
 
 // Intercept navigation
-chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+browserAPI.webNavigation.onBeforeNavigate.addListener((details) => {
   if (details.frameId !== 0) return; // Only handle main frame
   
   const url = details.url;
@@ -40,22 +44,23 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     return;
   }
   
-  if (isBlocked(url) && !url.includes('chrome-extension://')) {
+  // Check for both chrome-extension and moz-extension protocols
+  if (isBlocked(url) && !url.includes('chrome-extension://') && !url.includes('moz-extension://')) {
     pendingNavigations.set(tabId, url);
-    chrome.tabs.update(tabId, {
-      url: chrome.runtime.getURL('block.html') + '?url=' + encodeURIComponent(url)
+    browserAPI.tabs.update(tabId, {
+      url: browserAPI.runtime.getURL('block.html') + '?url=' + encodeURIComponent(url)
     });
   }
 });
 
 // Clean up when tabs are closed
-chrome.tabs.onRemoved.addListener((tabId) => {
+browserAPI.tabs.onRemoved.addListener((tabId) => {
   pendingNavigations.delete(tabId);
   grantedTabs.delete(tabId);
 });
 
 // Handle messages from block page
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'saveReason') {
     const { url, reason, tabId } = message;
     
@@ -66,7 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     // Save to history
-    chrome.storage.local.get(['visitHistory'], (result) => {
+    browserAPI.storage.local.get(['visitHistory'], (result) => {
       const history = result.visitHistory || [];
       history.unshift({
         url: url,
@@ -79,7 +84,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         history.length = 1000;
       }
       
-      chrome.storage.local.set({ visitHistory: history }, () => {
+      browserAPI.storage.local.set({ visitHistory: history }, () => {
         sendResponse({ success: true });
       });
     });
