@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snap Out - Full History</title>
+  <link rel="stylesheet" href="history.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="icon">📊</div>
+      <h1>Complete Visit History</h1>
+      <p class="subtitle">Track your website visits and reasons</p>
+    </header>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="totalVisits">0</div>
+        <div class="stat-label">Total Visits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="todayVisits">0</div>
+        <div class="stat-label">Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="weekVisits">0</div>
+        <div class="stat-label">This Week</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-header">
+        <h2>📜 Visit Log</h2>
+        <button id="clearBtn" class="danger">Clear All History</button>
+      </div>
+      
+      <div id="historyList"></div>
+    </div>
+  </div>
+  <script src="history.js"></script>
+</body>
+</html>
