@@ -1,0 +1,78 @@
+const historyList = document.getElementById('historyList');
+const viewAllBtn = document.getElementById('viewAllBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+
+function loadHistory() {
+  chrome.storage.local.get(['visitHistory'], (result) => {
+    const history = result.visitHistory || [];
+    renderHistory(history);
+  });
+}
+
+function extractDomainName(url) {
+  try {
+    const urlObj = new URL(url);
+    let domain = urlObj.hostname;
+    
+    // Remove www.
+    domain = domain.replace(/^www\./, '');
+    
+    // Remove TLD (.com, .org, etc.)
+    const parts = domain.split('.');
+    if (parts.length > 1) {
+      return parts[0];
+    }
+    return domain;
+  } catch {
+    return url;
+  }
+}
+
+function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return date.toLocaleDateString();
+}
+
+function renderHistory(history) {
+  if (history.length === 0) {
+    historyList.innerHTML = '<div class="no-history">No visits recorded yet</div>';
+    return;
+  }
+  
+  // Show only last 3 entries
+  const recentHistory = history.slice(0, 3);
+  
+  historyList.innerHTML = recentHistory.map(item => {
+    const domainName = extractDomainName(item.url);
+    const timeAgo = formatTime(item.timestamp);
+    
+    return `
+      <div class="history-item">
+        <div class="history-url">${domainName}</div>
+        <div class="history-reason">"${item.reason}"</div>
+        <div class="history-time">${timeAgo}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+viewAllBtn.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
+});
+
+settingsBtn.addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+});
+
+loadHistory();
