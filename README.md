@@ -42,7 +42,7 @@ Easily manage your list of blocked websites with a clean, intuitive interface.
 
 1. **Download** or clone this repository
    ```bash
-   git clone https://github.com/yourusername/snap-out.git
+   git clone https://github.com/mohaneddz/Snap-Out.git
    ```
 
 2. Open **Chrome** and navigate to `chrome://extensions/`
