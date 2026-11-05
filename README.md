@@ -1,3 +1,5 @@
+![Snap Out cover](screenshots/cover.avif)
+
 # 🛑 Snap Out - Mindful Browsing Extension
 
 [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat&logo=googlechrome&logoColor=white)](https://github.com)
