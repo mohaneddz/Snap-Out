@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Snap Out",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Block distracting websites until you state your reason for visiting",
   "permissions": [
     "storage",
     "tabs",
-    "webNavigation"
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -23,7 +23,7 @@
   "options_page": "options.html",
   "web_accessible_resources": [
     {
-      "resources": ["history.html"],
+      "resources": ["block.html"],
       "matches": ["<all_urls>"]
     }
   ],
