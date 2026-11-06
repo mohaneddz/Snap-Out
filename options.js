@@ -3,93 +3,87 @@ const addBtn = document.getElementById('addBtn');
 const sitesList = document.getElementById('sitesList');
 const status = document.getElementById('status');
 const sitesCount = document.getElementById('sitesCount');
-
 let blockedSites = [];
+let statusTimer;
 
-// Load blocked sites
-function loadSites() {
-  chrome.storage.sync.get(['blockedSites'], (result) => {
-    blockedSites = result.blockedSites || [];
-    renderSites();
-  });
-}
-
-// Render sites list
 function renderSites() {
   sitesCount.textContent = blockedSites.length;
-  sitesList.innerHTML = '';
-  
-  if (blockedSites.length === 0) {
-    sitesList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">🌐</div>
-        <div class="empty-state-text">No blocked websites yet. Add one above to get started!</div>
-      </div>
-    `;
+  sitesList.replaceChildren();
+  if (!blockedSites.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'No blocked websites yet. Add one above to get started!';
+    sitesList.append(empty);
     return;
   }
-  
-  blockedSites.forEach((site, index) => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span>🔒 ${site}</span>
-      <button class="delete-btn" data-index="${index}">Remove</button>
-    `;
-    sitesList.appendChild(li);
-  });
+
+  for (const site of blockedSites) {
+    const row = document.createElement('li');
+    const label = document.createElement('span');
+    const remove = document.createElement('button');
+    label.textContent = `🔒 ${site}`;
+    remove.type = 'button';
+    remove.className = 'delete-btn';
+    remove.textContent = 'Remove';
+    remove.dataset.site = site;
+    remove.setAttribute('aria-label', `Remove ${site}`);
+    row.append(label, remove);
+    sitesList.append(row);
+  }
 }
 
-// Add new site
-addBtn.addEventListener('click', () => {
-  const site = newSiteInput.value.trim().toLowerCase();
-  
-  if (!site) {
-    showStatus('Please enter a website', false);
-    return;
-  }
-  
-  if (blockedSites.includes(site)) {
-    showStatus('Website already in the list', false);
-    return;
-  }
-  
-  blockedSites.push(site);
-  saveSites();
-  newSiteInput.value = '';
-  showStatus('✓ Website added successfully', true);
-});
-
-// Handle Enter key
-newSiteInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    addBtn.click();
-  }
-});
-
-// Remove site
-sitesList.addEventListener('click', (e) => {
-  if (e.target.classList.contains('delete-btn')) {
-    const index = parseInt(e.target.dataset.index);
-    blockedSites.splice(index, 1);
-    saveSites();
-    showStatus('Website removed', true);
-  }
-});
-
-// Save sites
-function saveSites() {
-  chrome.storage.sync.set({ blockedSites: blockedSites }, () => {
+async function loadSites() {
+  try {
+    const result = await chrome.storage.sync.get('blockedSites');
+    blockedSites = [...new Set((Array.isArray(result.blockedSites) ? result.blockedSites : []).map(SnapOut.normalizeDomain).filter(Boolean))];
     renderSites();
-  });
+  } catch (error) {
+    showStatus(`Could not load websites: ${error.message}`, false);
+  }
 }
 
-// Show status message
+async function saveSites(next, successMessage) {
+  addBtn.disabled = true;
+  try {
+    await chrome.storage.sync.set({ blockedSites: next });
+    const result = await chrome.runtime.sendMessage({ type: 'refreshRules' });
+    if (!result?.success) throw new Error(result?.error || 'Chrome could not update the block rules.');
+    blockedSites = next;
+    renderSites();
+    showStatus(successMessage, true);
+  } catch (error) {
+    showStatus(`Could not save websites: ${error.message}`, false);
+  } finally {
+    addBtn.disabled = false;
+  }
+}
+
+addBtn.addEventListener('click', async () => {
+  const site = SnapOut.normalizeDomain(newSiteInput.value);
+  if (!site) return showStatus('Enter a valid website domain or URL.', false);
+  if (blockedSites.includes(site)) return showStatus('Website already in the list.', false);
+  await saveSites([...blockedSites, site], 'Website added.');
+  if (blockedSites.includes(site)) newSiteInput.value = '';
+});
+
+newSiteInput.addEventListener('keydown', event => {
+  if (event.key === 'Enter') addBtn.click();
+});
+
+sitesList.addEventListener('click', async event => {
+  const site = event.target.closest('button[data-site]')?.dataset.site;
+  if (site) await saveSites(blockedSites.filter(item => item !== site), 'Website removed.');
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.blockedSites) loadSites();
+});
+
 function showStatus(message, isSuccess) {
+  clearTimeout(statusTimer);
   status.textContent = message;
-  status.className = 'status show ' + (isSuccess ? 'success' : 'error');
-  setTimeout(() => {
-    status.classList.remove('show');
-  }, 3000);
+  status.className = `status show ${isSuccess ? 'success' : 'error'}`;
+  statusTimer = setTimeout(() => status.classList.remove('show'), 5000);
 }
 
 loadSites();
